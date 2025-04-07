@@ -181,6 +181,7 @@ The previous SAM 2 checkpoints released on July 29, 2024 can be found as follows
 |   sam2_hiera_large <br /> ([config](sam2/configs/sam2/sam2_hiera_l.yaml), [checkpoint](https://dl.fbaipublicfiles.com/segment_anything_2/072824/sam2_hiera_large.pt))   |    224.4     | 39.7 |        76.0         |        74.6        |       79.8        |
 
 Speed measured on an A100 with `torch 2.5.1, cuda 12.4`. See `benchmark.py` for an example on benchmarking (compiling all the model components). Compiling only the image encoder can be more flexible and also provide (a smaller) speed-up (set `compile_image_encoder: True` in the config).
+
 ## Segment Anything Video Dataset
 
 See [sav_dataset/README.md](sav_dataset/README.md) for details.
@@ -222,3 +223,5 @@ If you use SAM 2 or the SA-V dataset in your research, please use the following 
   year={2024}
 }
 ```
+
+如需了解專案的具體修改內容與設定說明，請參見[修訂說明文件](./REVISION_NOTES.md)。

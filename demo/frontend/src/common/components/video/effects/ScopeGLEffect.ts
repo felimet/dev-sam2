@@ -26,6 +26,8 @@ import {normalizeBounds, preAllocateTextures} from '@/common/utils/ShaderUtils';
 import {RLEObject, decode} from '@/jscocotools/mask';
 import invariant from 'invariant';
 import {CanvasForm} from 'pts';
+import { demoObjectLimit } from '@/demo/DemoConfig'; 
+
 
 export default class ScopeGLEffect extends BaseGLEffect {
   private _numMasks: number = 0;
@@ -52,7 +54,9 @@ export default class ScopeGLEffect extends BaseGLEffect {
     gl.uniform1i(this._numMasksUniformLocation, this._numMasks);
 
     // We know the max number of textures, pre-allocate 3.
-    this._maskTextures = preAllocateTextures(gl, 3);
+    // 動態分配紋理數量
+    const maskCount = demoObjectLimit || 6; // 默認值為 6
+    this._maskTextures = preAllocateTextures(gl, maskCount);
   }
 
   apply(form: CanvasForm, context: EffectFrameContext, _tracklets: Tracklet[]) {

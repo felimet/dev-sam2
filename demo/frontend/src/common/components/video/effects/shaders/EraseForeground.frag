@@ -21,6 +21,12 @@ uniform vec3 uBgColor;
 uniform sampler2D uMaskTexture0;
 uniform sampler2D uMaskTexture1;
 uniform sampler2D uMaskTexture2;
+uniform sampler2D uMaskTexture3;
+uniform sampler2D uMaskTexture4;
+uniform sampler2D uMaskTexture5;
+uniform sampler2D uMaskTexture6;
+uniform sampler2D uMaskTexture7;
+uniform sampler2D uMaskTexture8;
 
 out vec4 fragColor;
 
@@ -39,6 +45,30 @@ void main() {
   if(uNumMasks > 2) {
     float maskValue2 = texture(uMaskTexture2, vec2(vTexCoord.y, vTexCoord.x)).r;
     totalMaskValue += maskValue2;
+  }
+  if(uNumMasks > 3) {
+    float maskValue3 = texture(uMaskTexture3, vec2(vTexCoord.y, vTexCoord.x)).r;
+    totalMaskValue += maskValue3;
+  }
+  if(uNumMasks > 4) {
+    float maskValue4 = texture(uMaskTexture4, vec2(vTexCoord.y, vTexCoord.x)).r;
+    totalMaskValue += maskValue4;
+  }
+  if(uNumMasks > 5) {
+    float maskValue5 = texture(uMaskTexture5, vec2(vTexCoord.y, vTexCoord.x)).r;
+    totalMaskValue += maskValue5;
+  }
+  if(uNumMasks > 6) {
+    float maskValue6 = texture(uMaskTexture6, vec2(vTexCoord.y, vTexCoord.x)).r;
+    totalMaskValue += maskValue6;
+  }
+  if(uNumMasks > 7) {
+    float maskValue7 = texture(uMaskTexture7, vec2(vTexCoord.y, vTexCoord.x)).r;
+    totalMaskValue += maskValue7;
+  }
+  if(uNumMasks > 8) {
+    float maskValue8 = texture(uMaskTexture8, vec2(vTexCoord.y, vTexCoord.x)).r;
+    totalMaskValue += maskValue8;
   }
 
   if(totalMaskValue > 0.0f) {

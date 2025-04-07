@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {INFERENCE_API_ENDPOINT, VIDEO_API_ENDPOINT} from '@/demo/DemoConfig';
+import {Remote_API_ENDPOINT, Localhost_API_ENDPOINT, INFERENCE_API_ENDPOINT, VIDEO_API_ENDPOINT} from '@/demo/DemoConfig';
 
 export type Settings = {
   videoAPIEndpoint: string;
@@ -43,7 +43,43 @@ export function settingsReducer(state: Settings, action: Action): Settings {
       try {
         const serializedSettings = localStorage.getItem(SAM2_SETTINGS_KEY);
         if (serializedSettings != null) {
-          return JSON.parse(serializedSettings) as Settings;
+          // return JSON.parse(serializedSettings) as Settings;
+
+          // 強制使用 DemoConfig.tsx 中定義的最新 endpoint 值
+          // const updatedSettings: Settings = {
+          //   videoAPIEndpoint: VIDEO_API_ENDPOINT,
+          //   inferenceAPIEndpoint: INFERENCE_API_ENDPOINT,
+          // };
+
+          // 自動檢測當前環境
+          const isLocalNetwork = window.location.hostname === 'localhost' || 
+                  window.location.hostname.startsWith('192.168.') || 
+                  window.location.hostname.startsWith('10.') ||
+                  window.location.hostname.startsWith('172.16.') || 
+                  window.location.hostname.startsWith('172.17.') ||
+                  window.location.hostname.startsWith('172.18.') ||
+                  window.location.hostname.startsWith('172.19.') ||
+                  window.location.hostname.startsWith('172.2') ||
+                  window.location.hostname.startsWith('172.3') ||
+                  window.location.hostname === '127.0.0.1' ||
+                  window.location.hostname.endsWith('.local');
+
+          let apiEndpoint = isLocalNetwork 
+          ? Localhost_API_ENDPOINT 
+          : Remote_API_ENDPOINT;
+
+          // 輸出當前環境與選擇的API端點
+          console.log('目前主機名稱:', window.location.hostname);
+          console.log('是否為本地網絡:', isLocalNetwork);
+          // console.log('使用中的API端點:', apiEndpoint);
+
+          const updatedSettings: Settings = {
+          videoAPIEndpoint: apiEndpoint,
+          inferenceAPIEndpoint: apiEndpoint,
+          };
+          
+          // 始終將最新設定保存到 localStorage
+          storeSettings(updatedSettings);
         } else {
           // Store default settings in local storage. This will populate the
           // settings in the local storage on first app load or when user

@@ -86,6 +86,10 @@ export default async function fetchGraphQL(
 
   try {
     const response = await fetch(url, requestInit);
+    if (!response.ok) {
+      Logger.error(`GraphQL request failed with status: ${response.status}`);
+      throw new Error(`Network response was not ok: ${response.status}`);
+    }
     const result = await response.json();
 
     // Handle any intentional GraphQL errors, which are passed through the

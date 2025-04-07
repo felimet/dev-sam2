@@ -72,7 +72,8 @@ export default function VideoGalleryUploadVideo({
                   <>
                     Upload{' '}
                     <div className="text-xs opacity-70">
-                      Max {MAX_UPLOAD_FILE_SIZE}
+                      Max {MAX_UPLOAD_FILE_SIZE}. 
+                      Recommended &lt; 100MB.
                     </div>
                   </>
                 }

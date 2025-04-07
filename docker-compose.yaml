@@ -1,4 +1,19 @@
+version: '1.0.0'
+
 services:
+  cloudflare:
+    image: cloudflare/cloudflared:latest
+    restart: unless-stopped
+    command: tunnel --no-autoupdate --protocol http2 run --token ${CLOUDFLARE_TUNNEL_TOKEN}
+    depends_on:
+      - frontend
+      - backend
+    # volumes:
+    #   - ./demo/cloudflare/:/cloudflare/:rw # Uncomment if you want to use a local config file
+    environment:
+      - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN} # set this in your .env file
+     
+  
   frontend:
     image: sam2/frontend
     build:
@@ -17,26 +32,32 @@ services:
     volumes:
       - ./demo/data/:/data/:rw
     environment:
-      - SERVER_ENVIRONMENT=DEV
-      - GUNICORN_WORKERS=1
+      - MODEL_SIZE=large # large, base_plus, small, tiny
+      # "GUNICORN_WORKERS", "GUNICORN_THREADS" affect session resource competition: 
+      # when the user performs multiple operations on the interface (such as adding multiple points)
+      - SERVER_ENVIRONMENT=DEV  # DEV, STAGING, PROD, TEST
+      - GUNICORN_WORKERS=1 # number of workers to handle incoming requests
       # Inference API needs to have at least 2 threads to handle an incoming
       # parallel cancel propagation request
-      - GUNICORN_THREADS=2
-      - GUNICORN_PORT=5000
-      - API_URL=http://localhost:7263
-      - DEFAULT_VIDEO_PATH=gallery/05_default_juggle.mp4
+      - GUNICORN_THREADS=2  # number of threads to handle incoming requests
+      - GUNICORN_PORT=5000  # port to listen on
+      - API_URL=https://api-sam2.jmprohub.com # URL for the API endpoint http://localhost:7263
+      - DEFAULT_VIDEO_PATH=gallery/02_cups_default_demo.mp4 # default video path for demo
+      - MAX_UPLOAD_VIDEO_DURATION=300 # max upload video duration in seconds
+      - MAX_CONTENT_LENGTH=5242880000 # max content length in bytes (5GB)
       # # ffmpeg/video encode settings
-      - FFMPEG_NUM_THREADS=1
-      - VIDEO_ENCODE_CODEC=libx264
-      - VIDEO_ENCODE_CRF=23
-      - VIDEO_ENCODE_FPS=24
-      - VIDEO_ENCODE_MAX_WIDTH=1280
-      - VIDEO_ENCODE_MAX_HEIGHT=720
-      - VIDEO_ENCODE_VERBOSE=False
+      - FFMPEG_NUM_THREADS=4 # number of threads to use for ffmpeg
+      - VIDEO_ENCODE_CODEC=libx264  # libx264, h264_nvenc, hevc_nvenc, hevc_qsv, hevc_vaapi
+      - VIDEO_ENCODE_CRF=20 # 0-51, lower is better quality, 23 is default
+      - VIDEO_ENCODE_FPS=29 # "0" or comment out this command for original fps
+      - VIDEO_ENCODE_PRESET=medium # ultrafast, superfast, veryfast, faster, fast, medium, slow, slower,veryslow
+      - VIDEO_ENCODE_MAX_WIDTH=4106 # set to 0 for original width
+      - VIDEO_ENCODE_MAX_HEIGHT=1758 # set to 0 for original height
+      - VIDEO_ENCODE_VERBOSE=False  # set to True for verbose ffmpeg output
     deploy:
       resources:
         reservations:
           devices:
             - driver: nvidia
-              count: 1
+              count: all
               capabilities: [gpu]

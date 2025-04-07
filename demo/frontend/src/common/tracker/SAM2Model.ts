@@ -214,9 +214,7 @@ export class SAM2Model extends Tracker {
     // largest number.
     const nextId =
       Object.values(this._session.tracklets).reduce(
-        (prev, curr) => Math.max(prev, curr.id),
-        -1,
-      ) + 1;
+        (prev, curr) => Math.max(prev, curr.id), -1,) + 1;
 
     const newTracklet = {
       id: nextId,
@@ -305,6 +303,7 @@ export class SAM2Model extends Tracker {
       return Promise.reject('No active session');
     }
 
+    console.log(`Updating points for object: ${objectId}, points: ${points.length}`);
     // TODO: This is not the right place to initialize the empty mask.
     // Move this into the constructor and listen to events on the context.
     // Note, the initial context.width and context.height is 0, so it needs
@@ -367,12 +366,14 @@ export class SAM2Model extends Tracker {
           },
         },
         onCompleted: response => {
+          console.log(`Got response for object: ${objectId}`, response);
           tracklet.points[frameIndex] = points;
           tracklet.isInitialized = true;
           this._updateTrackletMasks(response.addPoints, true);
           resolve();
         },
         onError: error => {
+          console.error(`Error for object: ${objectId}`, error);
           Logger.error(error);
           reject(error);
         },

@@ -29,6 +29,7 @@ import {
 import {RLEObject, decode} from '@/jscocotools/mask';
 import invariant from 'invariant';
 import {CanvasForm} from 'pts';
+import { demoObjectLimit } from '@/demo/DemoConfig'; // 引入配置文件
 
 export default class OverlayEffect extends BaseGLEffect {
   private _numMasks: number = 0;
@@ -56,8 +57,9 @@ export default class OverlayEffect extends BaseGLEffect {
     this._numMasksUniformLocation = gl.getUniformLocation(program, 'uNumMasks');
     gl.uniform1i(this._numMasksUniformLocation, this._numMasks);
 
-    // We know the max number of textures, pre-allocate 3.
-    this._maskTextures = preAllocateTextures(gl, 3);
+    // 動態分配紋理數量
+    const maskCount = demoObjectLimit || 6; // 默認值為 6
+    this._maskTextures = preAllocateTextures(gl, maskCount);
   }
 
   apply(form: CanvasForm, context: EffectFrameContext, _tracklets: Tracklet[]) {
@@ -119,6 +121,14 @@ export default class OverlayEffect extends BaseGLEffect {
     );
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+
+    // 確保有足夠的紋理來處理所有遮罩
+    // while (this._maskTextures.length < context.masks.length) {
+    //   const texture = gl.createTexture();
+    //   if (texture) {
+    //     this._maskTextures.push(texture);
+    //   }
+    // }
 
     context.masks.forEach((mask, index) => {
       const decodedMask = decode([mask.bitmap as RLEObject]);

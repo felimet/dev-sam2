@@ -21,10 +21,11 @@ import {
 import fragmentShaderSource from '@/common/components/video/effects/shaders/Arrow.frag?raw';
 import vertexShaderSource from '@/common/components/video/effects/shaders/DefaultVert.vert?raw';
 import {Tracklet} from '@/common/tracker/Tracker';
-import {normalizeBounds} from '@/common/utils/ShaderUtils';
+import {normalizeBounds, preAllocateTextures} from '@/common/utils/ShaderUtils';
 import {RLEObject, decode} from '@/jscocotools/mask';
 import invariant from 'invariant';
 import {CanvasForm} from 'pts';
+import { demoObjectLimit } from '@/demo/DemoConfig';
 
 export default class ArrowGLEffect extends BaseGLEffect {
   private _numMasks: number = 0;
@@ -32,6 +33,7 @@ export default class ArrowGLEffect extends BaseGLEffect {
 
   // Must from start 1, main texture takes.
   private _masksTextureUnitStart: number = 1;
+  private _maskTextures: WebGLTexture[] = [];
 
   constructor() {
     super(4);
@@ -48,6 +50,10 @@ export default class ArrowGLEffect extends BaseGLEffect {
 
     this._numMasksUniformLocation = gl.getUniformLocation(program, 'uNumMasks');
     gl.uniform1i(this._numMasksUniformLocation, this._numMasks);
+    
+    // 動態分配紋理數量
+    const maskCount = demoObjectLimit || 9; // 支持9種顏色
+    this._maskTextures = preAllocateTextures(gl, maskCount);
   }
 
   apply(form: CanvasForm, context: EffectFrameContext, _tracklets: Tracklet[]) {
@@ -97,7 +103,8 @@ export default class ArrowGLEffect extends BaseGLEffect {
 
     // Create and bind 2D textures for each mask
     context.masks.forEach((mask, index) => {
-      const maskTexture = gl.createTexture();
+      // 使用預先分配的紋理
+      const maskTexture = this._maskTextures[index] || gl.createTexture();
       const decodedMask = decode([mask.bitmap as RLEObject]);
       const maskData = decodedMask.data as Uint8Array;
       gl.activeTexture(gl.TEXTURE0 + index + this._masksTextureUnitStart);
@@ -145,5 +152,19 @@ export default class ArrowGLEffect extends BaseGLEffect {
     const ctx = form.ctx;
     invariant(this._canvas !== null, 'canvas is required');
     ctx.drawImage(this._canvas, 0, 0);
+  }
+  
+  async cleanup(): Promise<void> {
+    super.cleanup();
+
+    if (this._gl != null) {
+      // Delete mask textures to prevent memory leaks
+      this._maskTextures.forEach(texture => {
+        if (texture != null && this._gl != null) {
+          this._gl.deleteTexture(texture);
+        }
+      });
+      this._maskTextures = [];
+    }
   }
 }

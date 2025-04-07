@@ -32,6 +32,7 @@ export function encode(
     let encodedFrameIndex = 0;
     let nextKeyFrameTimestamp = 0;
     let trackID: number | null = null;
+    let totalDuration = 0;
     const durations: number[] = [];
 
     const outputFile = createFile();
@@ -52,9 +53,14 @@ export function encode(
         }
         const shiftedDuration = durations.shift();
         if (shiftedDuration != null) {
+          const scaledDuration = getScaledDuration(shiftedDuration);
+          totalDuration += scaledDuration;
+
           outputFile.addSample(trackID, uint8, {
-            duration: getScaledDuration(shiftedDuration),
+            duration: totalDuration,
             is_sync: chunk.type === 'key',
+            dts: totalDuration, // Add explicit DTS
+            cts: totalDuration, // Add explicit CTS
           });
           encodedFrameIndex++;
           progressCallback?.(encodedFrameIndex / numFrames);
@@ -92,7 +98,15 @@ export function encode(
         alpha: 'discard',
         bitrateMode: 'variable',
         latencyMode: 'realtime',
+        hardwareAcceleration: 'prefer-software', // 提高兼容性
       };
+
+      // 檢查影片參數合法性
+      if (width <= 0 || height <= 0 || numFrames <= 0) {
+        throw new Error(
+          `Invalid video parameters: width=${width}, height=${height}, numFrames=${numFrames}`,
+        );
+      }
       const supportedConfig =
         await VideoEncoder.isConfigSupported(configuration);
       if (supportedConfig.supported === true) {

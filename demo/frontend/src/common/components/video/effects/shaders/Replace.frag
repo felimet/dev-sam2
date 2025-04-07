@@ -23,10 +23,22 @@ uniform bool uFill; // use all emoji texture
 uniform sampler2D uMaskTexture0;
 uniform sampler2D uMaskTexture1;
 uniform sampler2D uMaskTexture2;
+uniform sampler2D uMaskTexture3;
+uniform sampler2D uMaskTexture4;
+uniform sampler2D uMaskTexture5;
+uniform sampler2D uMaskTexture6;
+uniform sampler2D uMaskTexture7;
+uniform sampler2D uMaskTexture8;
 
 uniform vec4 bbox0;
 uniform vec4 bbox1;
 uniform vec4 bbox2;
+uniform vec4 bbox3;
+uniform vec4 bbox4;
+uniform vec4 bbox5;
+uniform vec4 bbox6;
+uniform vec4 bbox7;
+uniform vec4 bbox8;
 
 out vec4 fragColor;
 
@@ -101,6 +113,109 @@ void main() {
 
     totalMaskValue += maskValue2;
   }
+  if(uNumMasks > 3) {
+    float maskValue3 = texture(uMaskTexture3, vec2(vTexCoord.y, vTexCoord.x)).r;
+    float distanceFromCenter;
+    vec2 adjustedTexCoord = calculateAdjustedTexCoord(vTexCoord, bbox3, aspectRatio, distanceFromCenter);
+    
+    if(maskValue3 > 0.0f) {
+      emojiColor = texture(uEmojiTexture, adjustedTexCoord);
+      if(distanceFromCenter > 0.85f && !uFill) {
+        emojiColor = bgFill;
+      }
+    }
+    if(uFill && emojiColor.a == 0.0f) {
+      emojiColor = texture(uEmojiTexture, adjustedTexCoord);
+    }
+    
+    totalMaskValue += maskValue3;
+  }
+  if(uNumMasks > 4) {
+    float maskValue4 = texture(uMaskTexture4, vec2(vTexCoord.y, vTexCoord.x)).r;
+    float distanceFromCenter;
+    vec2 adjustedTexCoord = calculateAdjustedTexCoord(vTexCoord, bbox4, aspectRatio, distanceFromCenter);
+    
+    if(maskValue4 > 0.0f) {
+      emojiColor = texture(uEmojiTexture, adjustedTexCoord);
+      if(distanceFromCenter > 0.85f && !uFill) {
+        emojiColor = bgFill;
+      }
+    }
+    if(uFill && emojiColor.a == 0.0f) {
+      emojiColor = texture(uEmojiTexture, adjustedTexCoord);
+    }
+    
+    totalMaskValue += maskValue4;
+  }
+  if(uNumMasks > 5) {
+    float maskValue5 = texture(uMaskTexture5, vec2(vTexCoord.y, vTexCoord.x)).r;
+    float distanceFromCenter;
+    vec2 adjustedTexCoord = calculateAdjustedTexCoord(vTexCoord, bbox5, aspectRatio, distanceFromCenter);
+    
+    if(maskValue5 > 0.0f) {
+      emojiColor = texture(uEmojiTexture, adjustedTexCoord);
+      if(distanceFromCenter > 0.85f && !uFill) {
+        emojiColor = bgFill;
+      }
+    }
+    if(uFill && emojiColor.a == 0.0f) {
+      emojiColor = texture(uEmojiTexture, adjustedTexCoord);
+    }
+    
+    totalMaskValue += maskValue5;
+  }
+  if(uNumMasks > 6) {
+    float maskValue6 = texture(uMaskTexture6, vec2(vTexCoord.y, vTexCoord.x)).r;
+    float distanceFromCenter;
+    vec2 adjustedTexCoord = calculateAdjustedTexCoord(vTexCoord, bbox6, aspectRatio, distanceFromCenter);
+    
+    if(maskValue6 > 0.0f) {
+      emojiColor = texture(uEmojiTexture, adjustedTexCoord);
+      if(distanceFromCenter > 0.85f && !uFill) {
+        emojiColor = bgFill;
+      }
+    }
+    if(uFill && emojiColor.a == 0.0f) {
+      emojiColor = texture(uEmojiTexture, adjustedTexCoord);
+    }
+    
+    totalMaskValue += maskValue6;
+  }
+if(uNumMasks > 7) {
+    float maskValue7 = texture(uMaskTexture7, vec2(vTexCoord.y, vTexCoord.x)).r;
+    float distanceFromCenter;
+    vec2 adjustedTexCoord = calculateAdjustedTexCoord(vTexCoord, bbox7, aspectRatio, distanceFromCenter);
+    
+    if(maskValue7 > 0.0f) {
+      emojiColor = texture(uEmojiTexture, adjustedTexCoord);
+      if(distanceFromCenter > 0.85f && !uFill) {
+        emojiColor = bgFill;
+      }
+    }
+    if(uFill && emojiColor.a == 0.0f) {
+      emojiColor = texture(uEmojiTexture, adjustedTexCoord);
+    }
+    
+    totalMaskValue += maskValue7;
+  }
+  if(uNumMasks > 8) {
+    float maskValue8 = texture(uMaskTexture8, vec2(vTexCoord.y, vTexCoord.x)).r;
+    float distanceFromCenter;
+    vec2 adjustedTexCoord = calculateAdjustedTexCoord(vTexCoord, bbox8, aspectRatio, distanceFromCenter);
+    
+    if(maskValue8 > 0.0f) {
+      emojiColor = texture(uEmojiTexture, adjustedTexCoord);
+      if(distanceFromCenter > 0.85f && !uFill) {
+        emojiColor = bgFill;
+      }
+    }
+    if(uFill && emojiColor.a == 0.0f) {
+      emojiColor = texture(uEmojiTexture, adjustedTexCoord);
+    }
+    
+    totalMaskValue += maskValue8;
+  }
+
 
   if(totalMaskValue > 0.0f) {
     finalColor = emojiColor;

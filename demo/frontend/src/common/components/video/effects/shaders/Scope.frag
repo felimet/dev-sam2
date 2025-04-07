@@ -26,14 +26,32 @@ uniform bool uTransparency;
 uniform sampler2D uMaskTexture0;
 uniform sampler2D uMaskTexture1;
 uniform sampler2D uMaskTexture2;
+uniform sampler2D uMaskTexture3;
+uniform sampler2D uMaskTexture4;
+uniform sampler2D uMaskTexture5;
+uniform sampler2D uMaskTexture6;
+uniform sampler2D uMaskTexture7;
+uniform sampler2D uMaskTexture8;
 
 uniform vec4 uMaskColor0;
 uniform vec4 uMaskColor1;
 uniform vec4 uMaskColor2;
+uniform vec4 uMaskColor3;
+uniform vec4 uMaskColor4;
+uniform vec4 uMaskColor5;
+uniform vec4 uMaskColor6;
+uniform vec4 uMaskColor7;
+uniform vec4 uMaskColor8;
 
 uniform vec4 bbox0;
 uniform vec4 bbox1;
 uniform vec4 bbox2;
+uniform vec4 bbox3;
+uniform vec4 bbox4;
+uniform vec4 bbox5;
+uniform vec4 bbox6;
+uniform vec4 bbox7;
+uniform vec4 bbox8;
 
 out vec4 fragColor;
 
@@ -43,82 +61,81 @@ void main() {
   float radiusThreshold = 0.8f;
   float tickness = 0.085f;
 
-  vec4 mask1 = vec4(0.0f);
-  vec4 mask2 = vec4(0.0f);
-  vec4 mask3 = vec4(0.0f);
-  vec4 color1 = uMaskColor0 / 255.0;
-  vec4 color2 = uMaskColor1 / 255.0;
-  vec4 color3 = uMaskColor2 / 255.0;
+  // 創建遮罩、顏色和邊界框數組
+  vec4 masks[9];
+  vec4 maskColors[9];
+  vec4 bboxes[9];
+  
+  // 初始化遮罩陣列
+  for(int i = 0; i < 9; i++) {
+    masks[i] = vec4(0.0f);
+  }
+  
+  // 設置顏色和邊界框
+  maskColors[0] = uMaskColor0 / 255.0;
+  maskColors[1] = uMaskColor1 / 255.0;
+  maskColors[2] = uMaskColor2 / 255.0;
+  maskColors[3] = uMaskColor3 / 255.0;
+  maskColors[4] = uMaskColor4 / 255.0;
+  maskColors[5] = uMaskColor5 / 255.0;
+  maskColors[6] = uMaskColor6 / 255.0;
+  maskColors[7] = uMaskColor7 / 255.0;
+  maskColors[8] = uMaskColor8 / 255.0;
+  
+  bboxes[0] = bbox0;
+  bboxes[1] = bbox1;
+  bboxes[2] = bbox2;
+  bboxes[3] = bbox3;
+  bboxes[4] = bbox4;
+  bboxes[5] = bbox5;
+  bboxes[6] = bbox6;
+  bboxes[7] = bbox7;
+  bboxes[8] = bbox8;
+  
   vec4 scopedColor = vec4(0.0f);
-
   bool scoped = false;
   vec4 whiteVariation = uTransparency ? vec4(0.0,0.0,0.0,1.0) : vec4(1.0);
 
-  if(uNumMasks > 0) {
-    mask1 = texture(uMaskTexture0, vec2(vTexCoord.y, vTexCoord.x));
+  // 處理所有支援的遮罩
+  for(int i = 0; i < 9 && i < uNumMasks; i++) {
+    // 為每個遮罩讀取正確的紋理
+    if(i == 0) masks[i] = texture(uMaskTexture0, vec2(vTexCoord.y, vTexCoord.x));
+    else if(i == 1) masks[i] = texture(uMaskTexture1, vec2(vTexCoord.y, vTexCoord.x));
+    else if(i == 2) masks[i] = texture(uMaskTexture2, vec2(vTexCoord.y, vTexCoord.x));
+    else if(i == 3) masks[i] = texture(uMaskTexture3, vec2(vTexCoord.y, vTexCoord.x));
+    else if(i == 4) masks[i] = texture(uMaskTexture4, vec2(vTexCoord.y, vTexCoord.x));
+    else if(i == 5) masks[i] = texture(uMaskTexture5, vec2(vTexCoord.y, vTexCoord.x));
+    else if(i == 6) masks[i] = texture(uMaskTexture6, vec2(vTexCoord.y, vTexCoord.x));
+    else if(i == 7) masks[i] = texture(uMaskTexture7, vec2(vTexCoord.y, vTexCoord.x));
+    else if(i == 8) masks[i] = texture(uMaskTexture8, vec2(vTexCoord.y, vTexCoord.x));
 
-    vec2 center1 = (bbox0.xy + bbox0.zw) * 0.5f;
-    float radiusX1 = abs(bbox0.y - bbox0.w) * 0.5f;
-    float radiusY1 = radiusX1 / aspectRatio;
+    vec2 center = (bboxes[i].xy + bboxes[i].zw) * 0.5f;
+    float radiusX = abs(bboxes[i].y - bboxes[i].w) * 0.5f;
+    float radiusY = radiusX / aspectRatio;
 
-    float distX1 = (vTexCoord.x - center1.x) / radiusX1;
-    float distY1 = (vTexCoord.y - center1.y) / radiusY1;
-    float dist1 = sqrt(pow(distX1, 2.0f) + pow(distY1, 2.0f));
+    float distX = (vTexCoord.x - center.x) / radiusX;
+    float distY = (vTexCoord.y - center.y) / radiusY;
+    float dist = sqrt(pow(distX, 2.0f) + pow(distY, 2.0f));
    
     if(uFillColor) {
-      if(dist1 >= radiusThreshold - tickness && dist1 <= radiusThreshold) {
+      if(dist >= radiusThreshold - tickness && dist <= radiusThreshold) {
         scoped = true;
-        scopedColor = uLight ? whiteVariation : color1;
+        scopedColor = uLight ? whiteVariation : maskColors[i];
       }
-    } else if(dist1 <= radiusThreshold) {
+    } else if(dist <= radiusThreshold) {
       scoped = true;
-      scopedColor = uLight ? whiteVariation : color1;
-    }
-  }
-  if(uNumMasks > 1) {
-    mask2 = texture(uMaskTexture1, vec2(vTexCoord.y, vTexCoord.x));
-
-    vec2 center2 = (bbox1.xy + bbox1.zw) * 0.5f;
-    float radiusX2 = abs(bbox1.y - bbox1.w) * 0.5f;
-    float radiusY2 = radiusX2 / aspectRatio;
-
-    float distX2 = (vTexCoord.x - center2.x) / radiusX2;
-    float distY2 = (vTexCoord.y - center2.y) / radiusY2;
-    float dist2 = sqrt(pow(distX2, 2.0f) + pow(distY2, 2.0f));
-
-    if(uFillColor) {
-      if(dist2 >= radiusThreshold - tickness && dist2 <= radiusThreshold) {
-        scoped = true;
-        scopedColor = uLight ? whiteVariation : color2;
-      }
-    } else if(dist2 <= radiusThreshold) {
-      scoped = true;
-      scopedColor = uLight ? whiteVariation : color2;
-    }
-  }
-  if(uNumMasks > 2) {
-    mask3 = texture(uMaskTexture2, vec2(vTexCoord.y, vTexCoord.x));
-
-    vec2 center3 = (bbox2.xy + bbox2.zw) * 0.5f;
-    float radiusX3 = abs(bbox2.y - bbox2.w) * 0.5f;
-    float radiusY3 = radiusX3 / aspectRatio;
-
-    float distX3 = (vTexCoord.x - center3.x) / radiusX3;
-    float distY3 = (vTexCoord.y - center3.y) / radiusY3;
-    float dist3 = sqrt(pow(distX3, 2.0f) + pow(distY3, 2.0f));
-
-    if(uFillColor) {
-      if(dist3 >= radiusThreshold - tickness && dist3 <= radiusThreshold) {
-        scoped = true;
-        scopedColor = uLight ? whiteVariation : color3;
-      }
-    } else if(dist3 <= radiusThreshold) {
-      scoped = true;
-      scopedColor = uLight ? whiteVariation : color3;
+      scopedColor = uLight ? whiteVariation : maskColors[i];
     }
   }
 
-  bool overlap = (mask1.r > 0.0f || mask2.r > 0.0f || mask3.r > 0.0f);
+  // 檢查任何遮罩是否有重疊
+  bool overlap = false;
+  for(int i = 0; i < 9 && i < uNumMasks; i++) {
+    if(masks[i].r > 0.0f) {
+      overlap = true;
+      break;
+    }
+  }
 
   if(scoped) {
     fragColor = overlap ? color : scopedColor;

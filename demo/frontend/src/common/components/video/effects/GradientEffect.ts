@@ -24,6 +24,7 @@ import {Tracklet} from '@/common/tracker/Tracker';
 import {generateLUTDATA, load3DLUT} from '@/common/utils/ShaderUtils';
 import invariant from 'invariant';
 import {CanvasForm} from 'pts';
+import { demoObjectLimit } from '@/demo/DemoConfig';
 
 export default class GradientEffect extends BaseGLEffect {
   private lutSize: number = 2;
@@ -49,6 +50,11 @@ export default class GradientEffect extends BaseGLEffect {
     gl.uniform1i(
       gl.getUniformLocation(program, 'uColorGradeLUT'),
       this._extraTextureUnit,
+    );
+    
+    gl.uniform1i(
+      gl.getUniformLocation(program, 'uMaxColors'),
+      demoObjectLimit || 9,
     );
 
     this._lutTextures = []; // clear any previous pool of textures

@@ -1,0 +1,93 @@
+# SAM 2 專案程式碼修訂說明
+
+本文件詳細記錄了對SAM 2 Demo專案所做的程式碼修改，包含重要的設定、環境和使用注意事項。
+
+## 主要修改內容
+
+### 1. API端點自動檢測
+
+- 在 `SettingsReducer.ts` 中實作了自動檢測本地/遠端網絡並選擇適當API端點的機制
+- 系統自動識別主機名稱是否為本地網絡，並選擇合適的API端點
+- 支援多種本地網絡環境識別，包括localhost、127.0.0.1、.local域名以及私有IP範圍
+
+### 2. 增加物件顏色與追蹤數量
+
+- 在 `colors.ts` 中擴充了物件追蹤顏色列表，現在支援至少15種不同顏色
+- 每種顏色都有對應的註解說明，使程式碼更易於維護和理解
+- 將物件追蹤上限從預設3個修改為9個，使用者可同時追蹤更多物件
+- 確保與demoObjectLimit的數量一致或更多，維持色彩分配的一致性
+
+### 3. 影片處理與顯示改進
+
+- 在 `setup.py` 中更新了av套件版本至13.0.0，解決了"Uh oh, we cannot process this video"錯誤
+- 修正影片下載播放問題，解決編碼相容性問題 [參見 PR #431](https://github.com/facebookresearch/sam2/pull/431#issue-2627021246)
+- 修改影片處理邏輯，保留原始影片比例，不再強制調整為16:9
+- 去除預設浮水印，已修改為空字串，輸出更乾淨的結果
+- 注意：未修正前的影片在Windows內建播放器可能無法播放，但PotPlayer正常；MATLAB亦無法正常讀取畫格
+
+### 4. 上傳限制調整
+
+- 前端：MAX_UPLOAD_FILE_SIZE 從70MB大幅增加至5000MB（5GB）
+- 後端：MAX_UPLOAD_VIDEO_DURATION 從10秒增加至180秒（3分鐘）
+- 更適合處理較長、較大的影片文件，但須留意實際硬體資源限制
+
+### 5. 預設模型與容器設定
+
+- 將預設模型 (MODEL_SIZE) 從 `base_plus` 更改為 `large`，提供更高精確度
+- 在 `backend.Dockerfile` 中修正了ffmpeg路徑問題，通過刪除並重新鏈接到系統的ffmpeg
+- 強制重新安裝av套件以確保兼容性
+- 調整了工作目錄和模型路徑設定
+
+## 環境設定注意事項
+
+### 本地開發環境
+
+本專案支援MPS (Metal Performance Shaders) 和 CPU環境執行，但Docker容器僅支援CPU：
+
+- 若要在macOS上使用MPS加速，請按照原始README的說明在本地執行後端服務
+- 設置環境變數 `SAM2_DEMO_FORCE_CPU_DEVICE=1` 可強制使用CPU，避免MPS記憶體不足導致崩潰
+- 使用localhost執行時可處理更大的檔案，但須考量設備性能限制，避免系統崩潰
+- 建議對大型檔案先進行壓縮或降低解析度，以減輕硬體負擔
+
+### Docker配置
+
+在 `docker-compose.yaml` 中提供了完整的配置選項：
+
+- 可調整的GUNICORN參數: WORKERS、THREADS、PORT
+- 視頻編碼設定: 編解碼器、品質、FPS、尺寸
+- GPU資源調度設定
+
+### CloudFlare 整合與限制
+
+專案已添加 CloudFlare 整合支援，但需注意其檔案[上傳大小限制](https://developers.cloudflare.com/cache/concepts/default-cache-behavior/#upload-limits)：
+- 免費計劃：100MB
+- Pro 計劃：100MB
+- Business 計劃：200MB
+- Enterprise 計劃：500MB 或更高
+
+若需處理更大檔案，建議考慮使用 [Cloudflare R2 儲存服務](https://developers.cloudflare.com/r2/)，並配置相應的資料存取邏輯。
+
+### 建置與安裝
+
+setup.py支援以下安裝選項：
+
+- 標準安裝: `pip install -e .`
+- 交互式演示安裝: `pip install -e '.[interactive-demo]'`
+- 開發環境安裝: `pip install -e '.[dev]'`
+
+## 故障排除
+
+1. 影片處理失敗：
+   - 確保已正確安裝av套件 (13.0.0或更高版本)
+   - 檢查ffmpeg是否可用於系統路徑
+
+2. MPS記憶體不足錯誤：
+   - 設定環境變數 `SAM2_DEMO_FORCE_CPU_DEVICE=1`
+   - 降低處理的影片解析度或長度
+
+3. 物件追蹤限制：
+   - 當前演示限制為9個物件，可以在相關設定中修改
+
+## 雲端部署支援
+
+專案已添加 CloudFlare 整合支援，可透過設定 `.env` 檔案中的 `CLOUDFLARE_TUNNEL_TOKEN` 來使用CloudFlare Tunnel服務。

@@ -1,17 +1,18 @@
+# https://github.com/facebookresearch/sam2/issues/548#issue-2801638414
 ARG BASE_IMAGE=pytorch/pytorch:2.5.1-cuda12.1-cudnn9-runtime
-ARG MODEL_SIZE=base_plus
+ARG MODEL_SIZE=large
 
 FROM ${BASE_IMAGE}
 
 # Gunicorn environment variables
-ENV GUNICORN_WORKERS=1
-ENV GUNICORN_THREADS=2
+ENV GUNICORN_WORKERS=1 
+ENV GUNICORN_THREADS=2 
 ENV GUNICORN_PORT=5000
 
 # SAM 2 environment variables
 ENV APP_ROOT=/opt/sam2
 ENV PYTHONUNBUFFERED=1
-ENV SAM2_BUILD_CUDA=0
+ENV SAM2_BUILD_CUDA=0   
 ENV MODEL_SIZE=${MODEL_SIZE}
 
 # Install system requirements
@@ -30,9 +31,12 @@ COPY README.md .
 
 RUN pip install --upgrade pip setuptools
 RUN pip install -e ".[interactive-demo]"
+# fixed "Uh oh, we cannot process this video" Error. -> https://github.com/facebookresearch/sam2/issues/497
+RUN pip install av==13.1.0 --force-reinstall 
 
 # https://github.com/Kosinkadink/ComfyUI-VideoHelperSuite/issues/69#issuecomment-1826764707
-RUN rm /opt/conda/bin/ffmpeg && ln -s /bin/ffmpeg /opt/conda/bin/ffmpeg
+# RUN rm /opt/conda/bin/ffmpeg && ln -s /bin/ffmpeg /opt/conda/bin/ffmpeg
+RUN rm -f /opt/conda/bin/ffmpeg && ln -s /bin/ffmpeg /opt/conda/bin/ffmpeg
 
 # Make app directory. This directory will host all files required for the
 # backend and SAM 2 inference files.
@@ -53,7 +57,7 @@ ADD https://dl.fbaipublicfiles.com/segment_anything_2/092824/sam2.1_hiera_large.
 WORKDIR ${APP_ROOT}/server
 
 # https://pythonspeed.com/articles/gunicorn-in-docker/
-CMD gunicorn --worker-tmp-dir /dev/shm \
+CMD gunicorn --worker-tmp-dir /dev/shm \ 
     --worker-class gthread app:app \
     --log-level info \
     --access-logfile /dev/stdout \

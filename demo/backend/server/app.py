@@ -23,10 +23,14 @@ from inference.data_types import PropagateDataResponse, PropagateInVideoRequest
 from inference.multipart import MultipartResponseBuilder
 from inference.predictor import InferenceAPI
 from strawberry.flask.views import GraphQLView
+import os
 
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
+
+app.config['MAX_CONTENT_LENGTH'] = 5000 * 1024 * 1024 # 5GB
+
 cors = CORS(app, supports_credentials=True)
 
 videos = preload_data()
@@ -132,6 +136,10 @@ app.add_url_rule(
         # requires enabling support explicitly for views.
         # https://github.com/strawberry-graphql/strawberry/issues/3655
         multipart_uploads_enabled=True,
+        
+        # Enable GraphiQL interface 
+        graphiql=True,
+        # graphiql=False,
     ),
 )
 

@@ -29,6 +29,7 @@ import {
 } from '@/common/tracker/Tracker';
 import type {DataArray} from '@/jscocotools/mask';
 import {atom} from 'jotai';
+import { demoObjectLimit } from './DemoConfig';
 
 export type VideoData = {
   path: string;
@@ -84,7 +85,7 @@ export type TrackletObject = {
   isInitialized: boolean;
 };
 
-const MAX_NUMBER_TRACKLET_OBJECTS = 3;
+const MAX_NUMBER_TRACKLET_OBJECTS = demoObjectLimit;
 
 export const activeTrackletObjectIdAtom = atom<number | null>(0);
 
@@ -101,9 +102,15 @@ export const maxTrackletObjectIdAtom = atom<number>(get => {
   return tracklets.reduce((prev, curr) => Math.max(prev, curr.id), 0);
 });
 
-export const isTrackletObjectLimitReachedAtom = atom<boolean>(
-  get => get(trackletObjectsAtom).length >= MAX_NUMBER_TRACKLET_OBJECTS,
-);
+// export const isTrackletObjectLimitReachedAtom = atom<boolean>(
+//   get => get(trackletObjectsAtom).length >= MAX_NUMBER_TRACKLET_OBJECTS,
+// );
+export const isTrackletObjectLimitReachedAtom = atom<boolean>(get => {
+  const count = get(trackletObjectsAtom).length;
+  const limit = MAX_NUMBER_TRACKLET_OBJECTS;
+  console.log(`現有物件數: ${count}, 限制: ${limit}`); // 添加日誌
+  return count >= limit;
+});
 
 export const areTrackletObjectsInitializedAtom = atom<boolean>(get =>
   get(trackletObjectsAtom).every(obj => obj.isInitialized),

@@ -106,9 +106,10 @@ cd demo/backend/server/
 PYTORCH_ENABLE_MPS_FALLBACK=1 \
 APP_ROOT="$(pwd)/../../../" \
 API_URL=http://localhost:7263 \
-MODEL_SIZE=base_plus \
+MODEL_SIZE=large \
 DATA_PATH="$(pwd)/../../data" \
-DEFAULT_VIDEO_PATH=gallery/05_default_juggle.mp4 \
+DEFAULT_VIDEO_PATH=gallery/02_cups_default_demo.mp4 \
+MAX_UPLOAD_VIDEO_DURATION=180 \
 gunicorn \
     --worker-class gthread app:app \
     --workers 1 \
@@ -117,7 +118,7 @@ gunicorn \
     --timeout 60
 ```
 
-Options for the `MODEL_SIZE` argument are "tiny", "small", "base_plus" (default), and "large".
+Options for the `MODEL_SIZE` argument are "tiny", "small", "base_plus", and "large" (default).
 
 > [!WARNING]
 > Running the backend service on MPS devices can cause fatal crashes with the Gunicorn worker due to insufficient MPS memory. Try switching to CPU devices by setting the `SAM2_DEMO_FORCE_CPU_DEVICE=1` environment variable.

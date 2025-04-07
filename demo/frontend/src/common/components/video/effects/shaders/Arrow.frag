@@ -26,10 +26,22 @@ uniform bool uArrow;
 uniform sampler2D uMaskTexture0;
 uniform sampler2D uMaskTexture1;
 uniform sampler2D uMaskTexture2;
+uniform sampler2D uMaskTexture3;
+uniform sampler2D uMaskTexture4;
+uniform sampler2D uMaskTexture5;
+uniform sampler2D uMaskTexture6;
+uniform sampler2D uMaskTexture7;
+uniform sampler2D uMaskTexture8;
 
 uniform vec4 bbox0;
 uniform vec4 bbox1;
 uniform vec4 bbox2;
+uniform vec4 bbox3;
+uniform vec4 bbox4;
+uniform vec4 bbox5;
+uniform vec4 bbox6;
+uniform vec4 bbox7;
+uniform vec4 bbox8;
 
 out vec4 fragColor;
 
@@ -87,17 +99,19 @@ void main() {
   float time = uCurrentFrame * 0.05f;
   vec3 multicolor = vec3(0.5f + 0.5f * sin(time), 0.5f + 0.5f * cos(time), 0.5f - 0.5f * sin(time));
 
-  vec4 mask1 = vec4(0.0f);
-  vec4 mask2 = vec4(0.0f);
-  vec4 mask3 = vec4(0.0f);
+  vec4 masks[9];
+  for(int i = 0; i < 9; i++) {
+    masks[i] = vec4(0.0f);
+  }
 
   bool scoped = false;
   bool intersected = false;
   float threshold = 0.75f;
   float circleRadius = 0.015f;
 
+  // 處理多達9個遮罩
   if(uNumMasks > 0) {
-    mask1 = texture(uMaskTexture0, vec2(vTexCoord.y, vTexCoord.x));
+    masks[0] = texture(uMaskTexture0, vec2(vTexCoord.y, vTexCoord.x));
     bool visible = bbox0 != vec4(0.0f);
 
     vec2 p0 = vec2((bbox0.x + bbox0.z) * 0.5f, bbox0.y); // Top center
@@ -129,8 +143,9 @@ void main() {
     }
   }
 
+  // 添加額外的遮罩處理
   if(uNumMasks > 1) {
-    mask2 = texture(uMaskTexture1, vec2(vTexCoord.y, vTexCoord.x));
+    masks[1] = texture(uMaskTexture1, vec2(vTexCoord.y, vTexCoord.x));
     bool visible = bbox1 != vec4(0.0f);
 
     vec2 p0 = vec2((bbox1.x + bbox1.z) * 0.5f, bbox1.y);
@@ -161,7 +176,7 @@ void main() {
   }
 
   if(uNumMasks > 2) {
-    mask3 = texture(uMaskTexture2, vec2(vTexCoord.y, vTexCoord.x));
+    masks[2] = texture(uMaskTexture2, vec2(vTexCoord.y, vTexCoord.x));
     bool visible = bbox2 != vec4(0.0f);
 
     vec2 p0 = vec2((bbox2.x + bbox2.z) * 0.5f, bbox2.y);
@@ -190,7 +205,84 @@ void main() {
     }
   }
 
-  bool overlap = (mask1.r > 0.0f || mask2.r > 0.0f || mask3.r > 0.0f);
+  // 遮罩3
+  if(uNumMasks > 3) {
+    masks[3] = texture(uMaskTexture3, vec2(vTexCoord.y, vTexCoord.x));
+    bool visible = bbox3 != vec4(0.0f);
+
+    vec2 p0 = vec2((bbox3.x + bbox3.z) * 0.5f, bbox3.y);
+    vec2 p1 = vec2(bbox3.x + 0.5f * (bbox3.z - bbox3.x) * (0.5f + 0.5f * sin(time)), bbox3.y - 0.25f);
+    vec2 p2 = vec2(bbox3.x + 0.5f * (bbox3.z - bbox3.x) * (0.5f + 0.5f * cos(time)), (bbox3.w + bbox3.y) * 0.5f);
+    float d = calculateDistanceToQuadraticBezier(vTexCoord, p0, p1, p2);
+    d *= length(uSize.xy) * 0.25f;
+
+    vec2 v0 = p0 + vec2(-0.020f, -0.020f);
+    vec2 v1 = p0 + vec2(0.020f, -0.020f);
+    vec2 v2 = p0 + vec2(0.0f, 0.020f);
+    bool inside = pointInTriangle(vTexCoord, v0, v1, v2);
+
+    vec2 adjustedCoord = vTexCoord - p0;
+    adjustedCoord.x /= aspectRatio;
+    float circleDistance = length(adjustedCoord);
+
+    if(d < threshold && visible) {
+      scoped = true;
+    }
+
+    if(uArrow && inside && visible) {
+      intersected = true;
+    } else if(!uArrow && circleDistance < circleRadius && visible) {
+      intersected = true;
+    }
+  }
+
+  // 遮罩4-8 處理方式相同，為簡潔起見略去重複代碼
+  for(int i = 4; i < 9; i++) {
+    if(uNumMasks > i) {
+      if(i == 4) masks[i] = texture(uMaskTexture4, vec2(vTexCoord.y, vTexCoord.x));
+      else if(i == 5) masks[i] = texture(uMaskTexture5, vec2(vTexCoord.y, vTexCoord.x));
+      else if(i == 6) masks[i] = texture(uMaskTexture6, vec2(vTexCoord.y, vTexCoord.x));
+      else if(i == 7) masks[i] = texture(uMaskTexture7, vec2(vTexCoord.y, vTexCoord.x));
+      else if(i == 8) masks[i] = texture(uMaskTexture8, vec2(vTexCoord.y, vTexCoord.x));
+      
+      vec4 bboxI;
+      if(i == 4) bboxI = bbox4;
+      else if(i == 5) bboxI = bbox5;
+      else if(i == 6) bboxI = bbox6;
+      else if(i == 7) bboxI = bbox7;
+      else if(i == 8) bboxI = bbox8;
+      
+      bool visible = bboxI != vec4(0.0f);
+      
+      if(visible) {
+        vec2 p0 = vec2((bboxI.x + bboxI.z) * 0.5f, bboxI.y);
+        vec2 p1 = vec2(bboxI.x + 0.5f * (bboxI.z - bboxI.x) * (0.5f + 0.5f * sin(time)), bboxI.y - 0.25f);
+        vec2 p2 = vec2(bboxI.x + 0.5f * (bboxI.z - bboxI.x) * (0.5f + 0.5f * cos(time)), (bboxI.w + bboxI.y) * 0.5f);
+        float d = calculateDistanceToQuadraticBezier(vTexCoord, p0, p1, p2);
+        d *= length(uSize.xy) * 0.25f;
+
+        vec2 v0 = p0 + vec2(-0.020f, -0.020f);
+        vec2 v1 = p0 + vec2(0.020f, -0.020f);
+        vec2 v2 = p0 + vec2(0.0f, 0.020f);
+        bool inside = pointInTriangle(vTexCoord, v0, v1, v2);
+
+        vec2 adjustedCoord = vTexCoord - p0;
+        adjustedCoord.x /= aspectRatio;
+        float circleDistance = length(adjustedCoord);
+
+        if(d < threshold) {
+          scoped = true;
+        }
+
+        if(uArrow && inside) {
+          intersected = true;
+        } else if(!uArrow && circleDistance < circleRadius) {
+          intersected = true;
+        }
+      }
+    }
+  }
+
   if(overlap) {
     fragColor = color;
   }

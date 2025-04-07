@@ -169,7 +169,8 @@ class Mutation:
             rle_mask_list=[
                 RLEMaskForObject(
                     object_id=r.object_id,
-                    rle_mask=RLEMask(counts=r.mask.counts, size=r.mask.size, order="F"),
+                    rle_mask=RLEMask(
+                        counts=r.mask.counts, size=r.mask.size, order="F"),
                 )
                 for r in reponse.results
             ],
@@ -223,7 +224,8 @@ class Mutation:
             rle_mask_list=[
                 RLEMaskForObject(
                     object_id=r.object_id,
-                    rle_mask=RLEMask(counts=r.mask.counts, size=r.mask.size, order="F"),
+                    rle_mask=RLEMask(counts=r.mask.counts,
+                                     size=r.mask.size, order="F"),
                 )
                 for r in response.results
             ],
@@ -307,7 +309,8 @@ def process_video(
         if video_metadata.num_video_streams == 0:
             raise Exception("video container does not contain a video stream")
         if video_metadata.width is None or video_metadata.height is None:
-            raise Exception("video container does not contain width or height metadata")
+            raise Exception(
+                "video container does not contain width or height metadata")
 
         if video_metadata.duration_sec in (None, 0):
             raise Exception("video container does time duration metadata")

@@ -29,6 +29,8 @@ import {
 import {RLEObject, decode} from '@/jscocotools/mask';
 import invariant from 'invariant';
 import {CanvasForm} from 'pts';
+import { demoObjectLimit } from '@/demo/DemoConfig'; 
+
 
 export default class VibrantMaskEffect extends BaseGLEffect {
   private lutSize: number = 4;
@@ -73,7 +75,9 @@ export default class VibrantMaskEffect extends BaseGLEffect {
     gl.uniform1f(this._currentFrameLocation, 0);
 
     // We know the max number of textures, pre-allocate 3.
-    this._maskTextures = preAllocateTextures(gl, 3);
+    // 動態分配紋理數量
+    const maskCount = demoObjectLimit || 6; // 默認值為 6
+    this._maskTextures = preAllocateTextures(gl, maskCount);
 
     this._lutTextures = []; // clear any previous pool of textures
 

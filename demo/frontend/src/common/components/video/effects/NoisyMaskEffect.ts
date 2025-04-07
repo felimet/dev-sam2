@@ -22,13 +22,17 @@ import vertexShaderSource from '@/common/components/video/effects/shaders/Defaul
 import fragmentShaderSource from '@/common/components/video/effects/shaders/NoisyMask.frag?raw';
 import {Tracklet} from '@/common/tracker/Tracker';
 import {RLEObject, decode} from '@/jscocotools/mask';
+import {preAllocateTextures} from '@/common/utils/ShaderUtils';
 import invariant from 'invariant';
 import {CanvasForm} from 'pts';
+import { demoObjectLimit } from '@/demo/DemoConfig';
 
 export default class NoisyMaskEffect extends BaseGLEffect {
   private _numMasks: number = 0;
   private _numMasksUniformLocation: WebGLUniformLocation | null = null;
   private _currentFrameLocation: WebGLUniformLocation | null = null;
+  private _maskTextures: WebGLTexture[] = [];
+  private _masksTextureUnitStart: number = 0;
 
   constructor() {
     super(1);
@@ -51,6 +55,10 @@ export default class NoisyMaskEffect extends BaseGLEffect {
       'uCurrentFrame',
     );
     gl.uniform1f(this._currentFrameLocation, 0);
+    
+    // 動態分配紋理數量
+    const maskCount = demoObjectLimit || 9; // 支持9種顏色
+    this._maskTextures = preAllocateTextures(gl, maskCount);
   }
 
   apply(form: CanvasForm, context: EffectFrameContext, _tracklets: Tracklet[]) {
@@ -71,16 +79,15 @@ export default class NoisyMaskEffect extends BaseGLEffect {
 
     // Create and bind 2D textures for each mask
     context.masks.forEach((mask, index) => {
-      const maskTexture = gl.createTexture();
       const decodedMask = decode([mask.bitmap as RLEObject]);
       const maskData = decodedMask.data as Uint8Array;
-      gl.activeTexture(gl.TEXTURE0 + index);
-      gl.bindTexture(gl.TEXTURE_2D, maskTexture);
+      gl.activeTexture(gl.TEXTURE0 + index + this._masksTextureUnitStart);
+      gl.bindTexture(gl.TEXTURE_2D, this._maskTextures[index]);
 
       // dynamic uniforms per mask
       gl.uniform1i(
         gl.getUniformLocation(program, `uMaskTexture${index}`),
-        index,
+        index + this._masksTextureUnitStart,
       );
 
       gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
@@ -106,5 +113,19 @@ export default class NoisyMaskEffect extends BaseGLEffect {
     const ctx = form.ctx;
     invariant(this._canvas !== null, 'canvas is required');
     ctx.drawImage(this._canvas, 0, 0);
+  }
+  
+  async cleanup(): Promise<void> {
+    super.cleanup();
+
+    if (this._gl != null) {
+      // Delete mask textures to prevent memory leaks
+      this._maskTextures.forEach(texture => {
+        if (texture != null && this._gl != null) {
+          this._gl.deleteTexture(texture);
+        }
+      });
+      this._maskTextures = [];
+    }
   }
 }

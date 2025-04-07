@@ -77,7 +77,8 @@ def get_video_metadata(path: str) -> VideoMetadata:
             # for rotation, see: https://github.com/PyAV-Org/PyAV/pull/1249
             rotation_deg = video_stream.side_data.get("DISPLAYMATRIX", 0)
             num_video_frames = video_stream.frames
-            video_start_time = float(video_stream.start_time * video_stream.time_base)
+            video_start_time = float(
+                video_stream.start_time * video_stream.time_base)
             width, height = video_stream.width, video_stream.height
             fps = float(video_stream.guessed_rate)
             fps_avg = video_stream.average_rate
@@ -134,13 +135,13 @@ def normalize_video(
     assert h is not None, "height not available"
 
     # rescale to max_w:max_h if needed & preserve aspect ratio
-    r = w / h
-    if r < 1:
-        h = min(720, h)
-        w = h * r
-    else:
-        w = min(1280, w)
-        h = w / r
+    # r = w / h
+    # if r < 1:
+    #     h = min(720, h)
+    #     w = h * r
+    # else:
+    #     w = min(1280, w)
+    #     h = w / r
 
     # h264 cannot encode w/ odd dimensions
     w = int(w)
