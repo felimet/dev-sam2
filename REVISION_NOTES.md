@@ -1,13 +1,13 @@
 # SAM 2 專案程式碼修訂說明
 
-本文件詳細記錄了對SAM 2 Demo專案所做的程式碼修改，包含重要的設定、環境和使用注意事項。
+本文件詳細記錄了對 [SAM 2 Demo 專案](./demo/) 所做的程式碼修改，包含重要的設定、環境和使用注意事項。
 
 ## 主要修改內容
 
 ### 1. API端點自動檢測
 
-- 在 `SettingsReducer.ts` 中實作了自動檢測本地/遠端網絡並選擇適當API端點的機制
-- 系統自動識別主機名稱是否為本地網絡，並選擇合適的API端點
+- 在 `SettingsReducer.ts` 中實作了自動檢測本地/遠端網絡並選擇適當 API 端點的機制
+- 系統自動識別主機名稱是否為本地網絡，並選擇合適的 API 端點
 - 支援多種本地網絡環境識別，包括 `localhost`、`127.0.0.1`、`.local` 域名以及私有IP範圍
 
 ### 2. 增加物件顏色與追蹤數量
@@ -36,12 +36,12 @@
 - 將預設模型 (MODEL_SIZE) 從 `base_plus` 更改為 `large`，提供更高精確度
 - 在 `backend.Dockerfile` 中修正了 `ffmpeg` 路徑問題，通過刪除並重新鏈接到系統的 `ffmpeg`
 - 強制重新安裝 `av套件` 以確保兼容性
-- 調整了工作目錄和模型路徑設定
 
 ## 環境設定注意事項
 
 ### 本地開發環境
 
+- 使用 Windows Docker Containers 運行
 - 若要在macOS上使用MPS加速，請按照原始 README 的說明在本地執行後端服務
 - 設置環境變數 `SAM2_DEMO_FORCE_CPU_DEVICE=1` 可強制使用 CPU，避免 MPS 記憶體不足導致崩潰
 - 使用 `localhost` 執行時可處理更大的檔案，但須考量設備性能限制，避免系統崩潰
@@ -57,7 +57,7 @@
 
 ### CloudFlare 整合與限制
 
-專案已添加 CloudFlare 整合支援，但需注意其檔案[上傳大小限制](https://developers.cloudflare.com/cache/concepts/default-cache-behavior/#upload-limits)：
+專案已添加 CloudFlare 整合支援**供外網使用**，但需注意其檔案[上傳大小限制](https://developers.cloudflare.com/cache/concepts/default-cache-behavior/#upload-limits)：
 - 免費計劃：100MB
 - Pro 計劃：100MB
 - Business 計劃：200MB
@@ -84,7 +84,8 @@
    - 降低處理的影片解析度或長度
 
 3. 物件追蹤限制：
-   - 當前演示限制為9個物件，可以在相關設定中修改
+   - 當前演示限制為 9 個物件，可以在 `./demo/frontend/src/demo/DemoConfig.tsx` 中修改 `demoObjectLimit`
+   - 修改 `demoObjectLimit` 超過 9 個需額外增加 mask 色彩與修改[相應的程式檔案](./demo/frontend/src/common/components/video/effects)
 
 ## 雲端部署支援
 
