@@ -224,4 +224,7 @@ If you use SAM 2 or the SA-V dataset in your research, please use the following 
 }
 ```
 
+---
 如需了解專案的具體修改內容與設定說明，請參見[修訂說明文件](./REVISION_NOTES.md)。
+
+若您有任何問題，非常歡迎隨時與我們進行交流。
