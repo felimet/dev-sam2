@@ -8,8 +8,6 @@ services:
     depends_on:
       - frontend
       - backend
-    # volumes:
-    #   - ./demo/cloudflare/:/cloudflare/:rw # Uncomment if you want to use a local config file
     environment:
       - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN} # set this in your .env file
      
@@ -41,7 +39,7 @@ services:
       # parallel cancel propagation request
       - GUNICORN_THREADS=2  # number of threads to handle incoming requests
       - GUNICORN_PORT=5000  # port to listen on
-      - API_URL=https://api-sam2.jmprohub.com # URL for the API endpoint http://localhost:7263
+      - API_URL=https://api-sam2.jmprohub.com # URL for the API endpoint http://localhost:7263, https://api-sam2.jmprohub.com
       - DEFAULT_VIDEO_PATH=gallery/02_cups_default_demo.mp4 # default video path for demo
       - MAX_UPLOAD_VIDEO_DURATION=300 # max upload video duration in seconds
       - MAX_CONTENT_LENGTH=5242880000 # max content length in bytes (5GB)
